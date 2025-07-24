@@ -3,8 +3,8 @@
 import { format } from "date-fns";
 import Image from "next/image";
 import { useState } from "react";
-import { Incident } from "./IncidentPlayer";
-import { AlertTriangle, Eye, Gun, Car, Users } from "lucide-react";
+import { Incident } from "@/types/incident";
+import { AlertTriangle, Eye, Crosshair, Car, Users } from "lucide-react";
 
 interface IncidentListProps {
   incidents: Incident[];
@@ -16,7 +16,7 @@ interface IncidentListProps {
 const getIncidentIcon = (type: string) => {
   switch (type) {
     case "Gun Threat":
-      return <Gun className="w-4 h-4" />;
+      return <Crosshair className="w-4 h-4" />;
     case "Unauthorized Access":
       return <AlertTriangle className="w-4 h-4" />;
     case "Face Recognised":
@@ -57,24 +57,20 @@ export default function IncidentList({
 
   const handleResolve = async (incidentId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // Optimistic UI update
-    setResolvingIds((prev) => new Set([...prev, incidentId]));
+    setResolvingIds((prev) => new Set(prev.add(incidentId))); // Optimistic UI
 
     try {
       const response = await fetch(`/api/incidents/${incidentId}/resolve`, {
         method: "PATCH",
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to resolve incident");
-      }
+      if (!response.ok) throw new Error("Failed to resolve incident");
 
-      // Parent callback to update incident list
+      // ✅ Update parent state
       onIncidentResolve(incidentId);
     } catch (error) {
       console.error("Error resolving incident:", error);
-      // Remove from resolving set if failed
+      // Rollback optimistic update
       setResolvingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(incidentId);
@@ -85,12 +81,10 @@ export default function IncidentList({
 
   return (
     <div className="bg-gray-900 rounded-lg p-4 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-red-400" />
-          {incidents.length} Unresolved Incidents
-        </h2>
-      </div>
+      <h2 className="text-xl font-semibold text-white flex items-center gap-2 mb-4">
+        <AlertTriangle className="w-5 h-5 text-red-400" />
+        {incidents.length} Unresolved Incidents
+      </h2>
 
       <div className="flex-1 overflow-y-auto space-y-2 pr-2">
         {incidents.length === 0 ? (
@@ -124,7 +118,7 @@ export default function IncidentList({
                     />
                   </div>
 
-                  {/* Content */}
+                  {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2 mb-1">
@@ -152,13 +146,9 @@ export default function IncidentList({
                     <div className="text-gray-300 text-sm mb-1">
                       📍 {incident.camera.location}
                     </div>
-
                     <div className="flex items-center gap-4 text-xs text-gray-400">
-                      <div>
-                        🕐{" "}
-                        {format(new Date(incident.tsStart), "HH:mm")} -{" "}
-                        {format(new Date(incident.tsEnd), "HH:mm")}
-                      </div>
+                      🕐 {format(new Date(incident.tsStart), "HH:mm")} -{" "}
+                      {format(new Date(incident.tsEnd), "HH:mm")}
                     </div>
                   </div>
                 </div>

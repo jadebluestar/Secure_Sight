@@ -1,27 +1,14 @@
-'use client'
+"use client";
 
-import { format } from 'date-fns'
-import Image from 'next/image'
-
-export interface Incident {
-  id: string
-  type: string
-  tsStart: string
-  tsEnd: string
-  thumbnailUrl: string
-  resolved: boolean
-  cameraId: string
-  camera: {
-    id: string
-    name: string
-    location: string
-  }
-}
+import Image from "next/image";
+import { Incident } from "@/types/incident";
+import { Play, Pause } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface IncidentPlayerProps {
-  selectedIncident: Incident | null
-  otherIncidents: Incident[]
-  onIncidentSelect: (incident: Incident) => void
+  selectedIncident: Incident | null;
+  otherIncidents: Incident[];
+  onIncidentSelect: (incident: Incident) => void;
 }
 
 export default function IncidentPlayer({
@@ -29,114 +16,97 @@ export default function IncidentPlayer({
   otherIncidents,
   onIncidentSelect,
 }: IncidentPlayerProps) {
-  const otherThumbnails = otherIncidents.slice(0, 2)
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      setIsPlaying(false);
+    }
+  }, [selectedIncident]);
+
+  const handlePlayPause = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  if (!selectedIncident) {
+    return (
+      <div className="bg-gray-900 rounded-lg flex items-center justify-center h-full text-gray-400">
+        Select an incident to view details
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-gray-900 rounded-lg p-4 h-full flex flex-col">
-      {/* Main Video/Image Display */}
-      <div className="flex-1 bg-black rounded-lg mb-4 relative overflow-hidden">
-        {selectedIncident ? (
-          <div className="relative w-full h-full min-h-[400px]">
-            <Image
-              src={selectedIncident.thumbnailUrl}
-              alt={`${selectedIncident.type} - ${selectedIncident.camera.location}`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
-            />
-            
-            {/* Overlay Info */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-70 rounded-lg px-3 py-2">
-              <div className="text-white font-semibold text-sm">
-                {selectedIncident.camera.name}
-              </div>
-              <div className="text-gray-300 text-xs">
-                {selectedIncident.camera.location}
-              </div>
-            </div>
+    <div className="bg-gray-900 rounded-lg h-full flex flex-col overflow-hidden">
+      {/* Video Section */}
+      <div className="relative flex-1 bg-black">
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          controls={false}
+        >
+          {/* If no videoUrl, fallback to thumbnail */}
+          {selectedIncident.videoUrl ? (
+            <source src={selectedIncident.videoUrl} type="video/mp4" />
+          ) : null}
+        </video>
 
-            {/* Time Range */}
-            <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 rounded-lg px-3 py-2">
-              <div className="text-white text-sm">
-                {format(new Date(selectedIncident.tsStart), 'HH:mm:ss')} - {format(new Date(selectedIncident.tsEnd), 'HH:mm:ss')}
-              </div>
-              <div className="text-gray-300 text-xs">
-                {format(new Date(selectedIncident.tsStart), 'dd MMM yyyy')}
-              </div>
-            </div>
-
-            {/* Type Badge */}
-            <div className="absolute top-4 right-4">
-              <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                selectedIncident.type === 'Gun Threat'
-                  ? 'bg-red-600 text-white'
-                  : selectedIncident.type === 'Unauthorized Access'
-                  ? 'bg-orange-600 text-white'
-                  : selectedIncident.type === 'Face Recognised'
-                  ? 'bg-blue-600 text-white'
-                  : selectedIncident.type === 'Traffic Congestion'
-                  ? 'bg-yellow-600 text-black'
-                  : 'bg-purple-600 text-white'
-              }`}>
-                {selectedIncident.type}
-              </span>
+        {/* Overlay Controls */}
+        <div className="absolute inset-0 flex flex-col justify-between p-4">
+          <div className="flex justify-between items-start">
+            <div className="bg-black/50 px-3 py-1 rounded text-white text-sm">
+              {selectedIncident.type}
             </div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <div className="text-6xl mb-4">📹</div>
-              <div className="text-xl">Select an incident to view</div>
-            </div>
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={handlePlayPause}
+              className="bg-black/70 p-3 rounded-full text-white hover:bg-black/90"
+            >
+              {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            </button>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Incident Info */}
+      <div className="bg-gray-800 p-4 border-t border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-white">{selectedIncident.type}</h3>
+          <span className="text-sm text-gray-400">{selectedIncident.camera.location}</span>
+        </div>
+        <p className="text-sm text-gray-400 mb-3">
+          {selectedIncident.description || "No additional details provided."}
+        </p>
       </div>
 
       {/* Thumbnail Strip */}
-      <div className="flex gap-2">
-        {otherThumbnails.map((incident) => (
-          <button
-            key={incident.id}
-            onClick={() => onIncidentSelect(incident)}
-            className="relative flex-1 aspect-video bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
-          >
-            <Image
-              src={incident.thumbnailUrl}
-              alt={`${incident.type} - ${incident.camera.location}`}
-              fill
-              className="object-cover"
-              sizes="150px"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40 hover:bg-opacity-20 transition-all">
-              <div className="absolute bottom-1 left-1 text-white text-xs font-medium">
-                {incident.camera.name}
-              </div>
-              <div className="absolute top-1 right-1">
-                <span className={`inline-flex px-1.5 py-0.5 text-xs font-semibold rounded ${
-                  incident.type === 'Gun Threat'
-                    ? 'bg-red-600 text-white'
-                    : incident.type === 'Unauthorized Access'
-                    ? 'bg-orange-600 text-white'
-                    : incident.type === 'Face Recognised'
-                    ? 'bg-blue-600 text-white'
-                    : incident.type === 'Traffic Congestion'
-                    ? 'bg-yellow-600 text-black'
-                    : 'bg-purple-600 text-white'
-                }`}>
-                  •
-                </span>
-              </div>
+      {otherIncidents.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto bg-gray-800 p-3 border-t border-gray-700">
+          {otherIncidents.map((incident) => (
+            <div
+              key={incident.id}
+              onClick={() => onIncidentSelect(incident)}
+              className="w-24 h-16 flex-shrink-0 relative cursor-pointer rounded overflow-hidden hover:ring-2 hover:ring-blue-500"
+            >
+              <Image
+                src={incident.thumbnailUrl}
+                alt={incident.type}
+                fill
+                className="object-cover"
+              />
             </div>
-          </button>
-        ))}
-        
-        {/* Fill remaining space if less than 2 other incidents */}
-        {otherThumbnails.length < 2 && (
-          <div className="flex-1 aspect-video bg-gray-800 rounded-lg flex items-center justify-center text-gray-500">
-            <span className="text-sm">No camera</span>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }

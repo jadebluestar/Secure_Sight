@@ -30,7 +30,3 @@ model Incident {
   updatedAt    DateTime @updatedAt
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}

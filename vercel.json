@@ -3,5 +3,5 @@
   "builds": [
     { "src": "next.config.js", "use": "@vercel/next" }
   ],
-  "buildCommand": "npm run vercel-build"
+  "buildCommand": "npx prisma generate && npm run build"
 }

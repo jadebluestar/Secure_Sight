@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 10
+    }
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "file:./prisma/dev.db"
+    }
+  }
+}

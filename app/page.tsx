@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import IncidentPlayer from "@/components/IncidentPlayer";
 import IncidentList from "@/components/IncidentList";
+import Timeline from "@/components/Timeline"; // ✅ Added back
 import { Incident } from "@/types/incident";
 
 export default function HomePage() {
@@ -16,7 +17,7 @@ export default function HomePage() {
 
   const fetchIncidents = async () => {
     try {
-      const response = await fetch("/api/incidents?resolved=false");
+      const response = await fetch("/api/incidents"); // ✅ Removed ?resolved=false
       const data: Incident[] = await response.json();
       setIncidents(data);
 
@@ -57,6 +58,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
+      {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 flex-1">
         <div className="lg:col-span-2">
           <IncidentPlayer
@@ -73,6 +75,11 @@ export default function HomePage() {
             onIncidentResolve={handleIncidentResolve}
           />
         </div>
+      </div>
+
+      {/* ✅ Timeline Section */}
+      <div className="bg-gray-900 border-t border-gray-700 px-4 py-2">
+        <Timeline incidents={incidents} onSelect={handleIncidentSelect} />
       </div>
     </div>
   );

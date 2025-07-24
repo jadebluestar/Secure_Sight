@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,11 +12,15 @@ export default function HomePage() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch unresolved incidents only
+  // ✅ Fetch unresolved incidents only (with fallback)
   const fetchIncidents = async () => {
     try {
       const response = await fetch("/api/incidents?resolved=false");
-      const data: Incident[] = await response.json();
+      if (!response.ok) throw new Error("API failed");
+
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("Invalid API response");
+
       setIncidents(data);
 
       if (data.length > 0 && !selectedIncident) {
@@ -23,6 +28,30 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error("Error fetching incidents:", error);
+
+      // ✅ Fallback to mock data for deployment
+      const mockData: Incident[] = [
+        {
+          id: "demo1",
+          type: "Demo Incident",
+          tsStart: new Date(),
+          tsEnd: new Date(),
+          thumbnailUrl: "/thumbnails/thumb1.jpg",
+          resolved: false,
+          cameraId: "mock-camera",
+          camera: {
+            id: "mock-camera",
+            name: "Demo Camera",
+            location: "Virtual"
+          },
+          videoUrl: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+
+      setIncidents(mockData);
+      setSelectedIncident(mockData[0]);
     } finally {
       setLoading(false);
     }
@@ -36,23 +65,13 @@ export default function HomePage() {
     setSelectedIncident(incident);
   };
 
-  // ✅ Resolve via API and refresh list
+  // ✅ Mock resolve (since real DB won't work on Vercel)
   const handleIncidentResolve = async (incidentId: string) => {
     try {
-      const response = await fetch(`/api/incidents/${incidentId}/resolve`, {
-        method: "PATCH",
-      });
-
-      if (!response.ok) throw new Error("Failed to resolve incident");
-
-      // ✅ Refresh incidents list
-      await fetchIncidents();
-
-      // ✅ Update selected incident
-      if (selectedIncident?.id === incidentId) {
-        const remainingIncidents = incidents.filter((i) => i.id !== incidentId);
-        setSelectedIncident(remainingIncidents.length > 0 ? remainingIncidents[0] : null);
-      }
+      console.log(`Mock resolve for incident ${incidentId}`);
+      const remainingIncidents = incidents.filter((i) => i.id !== incidentId);
+      setIncidents(remainingIncidents);
+      setSelectedIncident(remainingIncidents.length > 0 ? remainingIncidents[0] : null);
     } catch (error) {
       console.error("Error resolving incident:", error);
     }

@@ -24,7 +24,7 @@ export default function IncidentPlayer({
 
   return (
     <div className="bg-gray-900 rounded-lg h-full flex flex-col overflow-hidden">
-      {/* Image Display instead of video */}
+      {/* Image Display */}
       <div className="relative flex-1 bg-black">
         <Image
           src={selectedIncident.thumbnailUrl || "/thumbnails/thumb1.jpg"}
@@ -48,7 +48,7 @@ export default function IncidentPlayer({
           </span>
         </div>
         <p className="text-sm text-gray-400 mb-3">
-          {selectedIncident.description || "No additional details provided."}
+          No additional details provided.
         </p>
       </div>
 

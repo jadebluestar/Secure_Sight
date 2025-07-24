@@ -66,11 +66,9 @@ export default function IncidentList({
 
       if (!response.ok) throw new Error("Failed to resolve incident");
 
-      // ✅ Update parent state
       onIncidentResolve(incidentId);
     } catch (error) {
       console.error("Error resolving incident:", error);
-      // Rollback optimistic update
       setResolvingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(incidentId);
@@ -96,6 +94,7 @@ export default function IncidentList({
           incidents.map((incident) => {
             const isResolving = resolvingIds.has(incident.id);
             const isSelected = selectedIncident?.id === incident.id;
+
             return (
               <div
                 key={incident.id}
@@ -107,10 +106,9 @@ export default function IncidentList({
                 } ${isResolving ? "opacity-50 scale-95" : ""}`}
               >
                 <div className="flex items-start gap-3">
-                  {/* Thumbnail */}
                   <div className="relative w-16 h-12 bg-gray-700 rounded overflow-hidden flex-shrink-0">
                     <Image
-                      src={incident.thumbnailUrl}
+                      src={incident.thumbnailUrl || "/thumbnails/thumb1.jpg"}
                       alt={`${incident.type} thumbnail`}
                       fill
                       className="object-cover"
@@ -118,7 +116,6 @@ export default function IncidentList({
                     />
                   </div>
 
-                  {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2 mb-1">

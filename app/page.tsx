@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import IncidentPlayer from "@/components/IncidentPlayer";
 import IncidentList from "@/components/IncidentList";
-import Timeline from "@/components/Timeline";
 import { Incident } from "@/types/incident";
 
 export default function HomePage() {
@@ -44,7 +43,7 @@ export default function HomePage() {
     }
   };
 
-  const otherIncidents: Incident[] = selectedIncident
+  const otherIncidents = selectedIncident
     ? incidents.filter((incident) => incident.id !== selectedIncident.id)
     : incidents;
 
@@ -74,9 +73,6 @@ export default function HomePage() {
             onIncidentResolve={handleIncidentResolve}
           />
         </div>
-      </div>
-      <div className="bg-gray-900 border-t border-gray-700 px-4 py-2">
-        <Timeline incidents={incidents} onSelect={handleIncidentSelect} />
       </div>
     </div>
   );

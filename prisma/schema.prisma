@@ -24,6 +24,7 @@ model Incident {
   thumbnailUrl String
   resolved     Boolean  @default(false)
   cameraId     String
+  videoUrl     String?
   camera       Camera   @relation(fields: [cameraId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

@@ -7,5 +7,7 @@ export interface Incident {
   camera: {
     name: string;
     location: string;
+
   };
+  videoUrl?: string;
 }

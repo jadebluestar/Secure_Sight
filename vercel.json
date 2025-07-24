@@ -2,5 +2,6 @@
   "version": 2,
   "builds": [
     { "src": "next.config.js", "use": "@vercel/next" }
-  ]
+  ],
+  "buildCommand": "npx prisma generate && npm run build"
 }
